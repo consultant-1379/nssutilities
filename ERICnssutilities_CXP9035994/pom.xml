@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>nssutilities</artifactId>
+    <groupId>com.ericsson.ci.nss</groupId>
+    <version>1.0.21-SNAPSHOT</version>
+  </parent>
+  <artifactId>ERICnssutilities_CXP9035994</artifactId>
+  <packaging>rpm</packaging>
+  <name>[${project.parent.artifactId}] CXP9035994</name>
+  <properties>
+    <!--com.ericsson.oss.rpm.architecture>x86_64</com.ericsson.oss.rpm.architecture -->
+    <!-- Install path = /${rpm-root}/${comp-name}/${install-path} -->
+    <media.category>testware</media.category>
+    <rpm-root>opt</rpm-root>
+    <comp-name>ericsson</comp-name>
+    <install-path>nssutils</install-path>
+    <env-path>.env</env-path>
+    <publish_artifact>true</publish_artifact>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <defineStatements>
+            <defineStatement>_binaries_in_noarch_packages_terminate_build 0</defineStatement>
+          </defineStatements>
+          <skip>true</skip>
+          <inherited>true</inherited>
+          <classifier>nssutils</classifier>
+          <copyright>2014 Ericsson AB All rights reserved</copyright>
+          <description>${ericsson.rstate}</description>
+          <group>ERI-NMS</group>
+          <needarch>false</needarch>
+          <autoRequires>false</autoRequires>
+          <vendor>Ericsson AB</vendor>
+          <url>www.ericsson.com</url>
+          <mappings>
+            <mapping>
+              <directory>/${rpm-root}/${comp-name}</directory>
+              <filemode>775</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+            </mapping>
+            <mapping>
+              <directory>/${rpm-root}/${comp-name}/${install-path}/bin</directory>
+              <filemode>775</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <configuration>false</configuration>
+              <directoryIncluded>true</directoryIncluded>
+              <recurseDirectories>true</recurseDirectories>
+              <dependency />
+              <sources>
+                <source>
+                  <location>../bin</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/${rpm-root}/${comp-name}/${install-path}/${env-path}</directory>
+              <filemode>775</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <configuration>false</configuration>
+              <directoryIncluded>true</directoryIncluded>
+              <recurseDirectories>true</recurseDirectories>
+              <dependency />
+              <sources>
+                <source>
+                  <location>../.env</location>
+                  <excludes>
+                    <exclude>lib/python2.7/site-packages/ptyprocess*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/pexpect*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/jinja2*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/markupsafe*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/Jinja2*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/MarkupSafe*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/jsonpickle*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/tabulate*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/tabulate.py</exclude>
+                    <exclude>lib/python2.7/site-packages/retrying*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/retrying.py</exclude>
+                    <exclude>lib/python2.7/site-packages/websocket*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/json2html*/**</exclude>
+                    <exclude>lib/python2.7/site-packages/cli2man*/**</exclude>
+                  </excludes>
+                </source>
+              </sources>
+            </mapping>
+          </mappings>
+          <installScriptlet>
+            <script>find $RPM_BUILD_ROOT/opt/ericsson/nssutils -name \*.py[co] -delete</script>
+            <script>find $RPM_BUILD_ROOT/opt/ericsson/nssutils/.env/ -type f -perm /u+x,g+x -exec /usr/sbin/prelink -uf {} \;</script>
+          </installScriptlet>
+          <preinstallScriptlet>
+            <script>
+              if [ -d /opt/ericsson/nssutils ]; then
+                find /opt/ericsson/nssutils -name \*.py[co] -delete;
+              fi
+            </script>
+          </preinstallScriptlet>
+          <postinstallScriptlet>
+            <script>
+              if ! [ -d /opt/ericsson/nssutils/etc ]; then
+                mkdir /opt/ericsson/nssutils/etc;
+                /bin/ln -sf /opt/ericsson/nssutils/.env/lib/python2.7/site-packages/nssutils/etc/properties.conf /opt/ericsson/nssutils/etc;
+              fi
+              if [ -d /opt/ericsson/nssutils ]; then
+                rm -rf /opt/ericsson/enmutils/bin/node_populator
+                /bin/ln -sf /opt/ericsson/nssutils/bin/node_populator /opt/ericsson/enmutils/bin/
+              fi;
+              if [ -d /opt/ericsson/nssutils ]; then
+                rm -rf /opt/ericsson/enmutils/bin/netsim
+                /bin/ln -sf /opt/ericsson/nssutils/bin/netsim /opt/ericsson/enmutils/bin/
+              fi;
+            </script>
+            <fileEncoding>utf-8</fileEncoding>
+          </postinstallScriptlet>
+          <postremoveScriptlet>
+            <script>
+              if [ -d /opt/ericsson/nssutils ]; then
+                find /opt/ericsson/nssutils -name \*.py[co] -delete;
+              fi;
+              if [ "$1" = 0 ]; then
+                rm -rf /opt/ericsson/nssutils/.env /opt/ericsson/nssutils/etc;
+              fi;
+            </script>
+          </postremoveScriptlet>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <useReleaseProfile>false</useReleaseProfile>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

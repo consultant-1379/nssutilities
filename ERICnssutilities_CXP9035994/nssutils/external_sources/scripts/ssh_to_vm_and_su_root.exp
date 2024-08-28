@@ -1,0 +1,150 @@
+#!/usr/bin/expect
+
+set thisScript [ info script ]
+set vm_hostname [lindex $argv 0]
+set HOST_IS_A_VM 0
+
+if { $argc < 1 } {
+        puts "This script will auto-login to VM via cloud-user/litp-admin and then su to root"
+        puts "Syntax: $thisScript vm_hostname \[ \"command_to_be_executed_as_root_on_vm\" \]"
+        exit 0
+}
+
+#Assuming that VMs will be one of the following form, hence use cloud-user to access the VM, otherwise use litp-admin
+set vm_MatchList {{*-*-*} {solr} {openidm} {visi*} {emailservice} {esmon}}
+
+for {set i 0} {$i < [llength $vm_MatchList]} {incr i} {
+        if { [string match [lindex $vm_MatchList $i] $vm_hostname] } {
+                set HOST_IS_A_VM 1
+                break
+        }
+}
+
+if { [string match visinamingnb $vm_hostname] } {
+        set litp_query "/usr/bin/litp show -p /deployments/enm/clusters/svc_cluster/configs/alias_configuration/aliases/visinamingnb_internal_alias -o address"
+        puts "Fetching visinamingnb IP from litp model using this command:"
+        puts "\"$litp_query\""
+        set vm_hostname [eval exec [split $litp_query " "] ]
+}
+
+if {$HOST_IS_A_VM} {
+        set user "cloud-user"
+        set root_password "passw0rd"
+	set switch_user_cmd "sudo su -"
+
+        spawn -noecho /bin/sh -c "ssh -i \/root\/.ssh\/vm_private_key $user\@$vm_hostname"
+
+} else {
+        set user "litp-admin"
+        set root_password "12shroot"
+	set switch_user_cmd "su -"
+
+        spawn -noecho /bin/sh -c "ssh litp-admin\@$vm_hostname"
+
+}
+
+
+proc handle_offending_key { vm_hostname data } {
+        foreach line [split $data "\n"] {
+                if {[string match "Offending key*" $line]} {
+                        regexp {(.*hosts):(\d+)} $line matched text hosts_line_number
+                        exec sed -i ${hosts_line_number}d /root/.ssh/known_hosts
+                }
+        }
+
+        puts "\n\nThe ssh key for $vm_hostname in /root/.ssh/known_hosts had expired and has now been removed by this script"
+        puts "Try to connect again by re-running last command"
+        exit 0
+}
+
+
+set bad_root_prompt 0
+expect {
+        "$ " {
+                send "$switch_user_cmd\r"
+		expect {
+                        "assword: " {
+                                send "$root_password\r"
+                                exp_continue
+                        } "$ " {
+                                puts "\nNote: Prompt looks to be incorrect here - expecting '#' instead of '$'"
+                                send "\r"
+                                expect "$ "
+                                set bad_root_prompt 1
+
+                        } "# " {
+
+                        } "Permission denied" {
+                                puts "\nLooks like script cannot connect to $vm_hostname with $user"
+                                exit 0
+                        }
+                }
+
+
+        } "Name or service not known" {
+                puts "\nCheck $vm_hostname and retry"
+                exit 0
+
+        } "route to host" {
+                puts "\nCant access $vm_hostname"
+                exit 0
+
+        } "Connection refused" {
+                puts "\nCant access $vm_hostname"
+                exit 0
+
+        } "assword: " {
+                send "$root_password\r"
+                exp_continue
+
+        } "Host key verification failed" {
+                handle_offending_key $vm_hostname $expect_out(buffer)
+
+        } "Offending key for IP*\n" {
+                handle_offending_key $vm_hostname $expect_out(buffer)
+
+        } "Are you sure you want to continue connecting (yes/no)? " {
+                send "yes\r"
+                exp_continue
+
+        } "consent to monitoring and data collection." {
+                expect "#####"
+                exp_continue
+
+        } "# " {
+
+        } "Permission denied" {
+                puts "\nLooks like script cannot connect to $vm_hostname with $user"
+                exit 0
+        }
+}
+
+
+# If any argument passed to this script, then script will login to VM, execute script and return control.
+# Otherwise, script will operate in interactive Mode
+if { $argc > 1 } {
+        set command [lindex $argv 1]
+        send "$command\r"
+        if { $bad_root_prompt == 1 } {
+                expect "$ "
+        } else {
+                expect "# "
+        }
+
+        puts "\n"
+
+} else {
+        set dirname "/ericsson/3pp/jboss/standalone/log/"
+        set define_alias "alias boss=\"cd $dirname\""
+        send "$define_alias\r"
+        if { $bad_root_prompt == 1 } {
+                expect "$ "
+        } else {
+                expect "# "
+        }
+
+
+        interact
+}
+
+

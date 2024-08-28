@@ -1,0 +1,1 @@
+node_name, node_ip, cpp_version, mim_version, model_identity, security_state, supported_protocols, normal_user, normal_password, secure_user, secure_password, subnetwork

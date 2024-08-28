@@ -1,0 +1,72 @@
+# Compiled source #
+*.pyc
+*.pyo
+
+# Eclipse files
+.project
+.classpath
+.settings
+.pydevproject
+.metadata
+
+# Maven build files
+target
+reports
+
+# ARQ tests
+arq-perf
+
+# PMD
+.pmd
+
+# Generated files
+*.ser
+
+# Merge files
+*.orig
+
+# Database files
+*.db
+
+# Docs
+*.tex
+
+# Log files
+*.log
+
+# Code coverage
+.coverage
+coverage-3.7/
+
+# Test results
+test-results/
+
+# PyCharm
+.idea/
+.vscode/
+
+# IntelliJ
+*.iml
+
+# data generated from node populator tool
+/data/
+
+# Python build folders
+ERICnssutilities_CXP9035994/build/
+ERICnssutilities_CXP9035994/dist/
+ERICnssutilities_CXP9035994/*.egg-info
+*.egg-info/
+
+# Python virtualenv
+env/
+.env/
+
+# Persistence
+persistence/
+
+ERICnssutilities_CXP9035994/nodes_data_file
+
+# Local properties
+ERICnssutilities_CXP9035994/enmutils/local_properties.py
+
+

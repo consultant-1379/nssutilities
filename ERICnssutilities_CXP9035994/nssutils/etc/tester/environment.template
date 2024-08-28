@@ -1,0 +1,38 @@
+<qa:environment xmlns:qa="urn:model.commons.qatools.yandex.ru">
+    <name>ENM Utilities Test Report</name>
+    <parameter>
+        <name>ENM</name>
+        <key>ENM ISO</key>
+        <value>%%build%%</value>
+    </parameter>
+    <parameter>
+        <name>LITP</name>
+        <key>LITP ISO</key>
+        <value>%%litp_build%%</value>
+    </parameter>
+    <parameter>
+        <name>Version</name>
+        <key>RPM Version</key>
+        <value>%%rpm_version%%</value>
+    </parameter>
+    <parameter>
+        <name>Deployment</name>
+        <key>ENM Deployment (MS)</key>
+        <value>%%hostname%%</value>
+    </parameter>
+    <parameter>
+        <name>Directory</name>
+        <key>Execution Directory</key>
+        <value>%%directory%%</value>
+    </parameter>
+    <parameter>
+        <name>Date</name>
+        <key>Date</key>
+        <value>%%date%%</value>
+    </parameter>
+    <parameter>
+        <name>MS IP</name>
+        <key>IP Address (MS)</key>
+        <value>%%ms_ip%%</value>
+    </parameter>
+</qa:environment> 

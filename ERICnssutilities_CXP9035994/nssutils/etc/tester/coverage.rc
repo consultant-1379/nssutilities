@@ -1,0 +1,17 @@
+[run]
+omit =
+    *test.py
+    *logger*
+    *fabfile.py
+    *default_configurations*
+    *deprecated*
+    *shm.py
+    *enm_role.py
+
+    # No Coverage of the workload profiles
+    *lib/workload/*
+
+    # Files that are covered by ACceptance Tests
+    *alarm_routing*
+    *auto_provision*
+    *fm_delayed_ack.py
